@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.vscode/
+
+# Run outputs
+results/*
+!results/.gitignore
+
+# Large arrays distributed separately (see Data availability in the README);
+# the small *_V_*.npy coefficient files are tracked.
+data/*_interpolate_*.npy
+data/*_lsc_*.npy
+
+# Manuscript source, not part of the release
+*.tex

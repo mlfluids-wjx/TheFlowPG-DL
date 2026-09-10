@@ -1,0 +1,152 @@
+# TheFlowPG-DL
+
+## Introduction
+
+This repository provides a reference implementation of **TheFlowPG-DL**, a
+physics-guided deep-learning
+framework that predicts the reversal dynamics of the large-scale circulation (LSC) in two-dimensional Rayleigh–Bénard convection, as a function of the
+Rayleigh number $Ra$ and the Prandtl number $Pr$.
+
+The framework factorizes the prediction into three built-in modules, applied
+consecutively:
+
+| Module | Role |
+| --- | --- |
+| **POD** — Proper Orthogonal Decomposition | Reduces the dimensionality of the high-dimensional state and identifies the energy-dominating LSC structure on a reduced-order coordinate |
+| **TPM** — Temporal Prediction Module | Advances the reduced-order coordinate, predicting the $Ra$ and $Pr$ dependent reversal dynamics of the LSC |
+| **SRM** — Spatial Reconstruction Module | Projects the predicted LSC coordinate back onto the full-state space, reconstructing the small-scale velocity and temperature structures discarded by the dimensionality reduction |
+
+---
+
+## Citation
+
+This repository accompanies the paper *Decoding multistate turbulence:
+physics-guided learning of spatiotemporal dynamics in turbulent convection*
+by Wu Jiaxin, Xie Yichao and Zhang Mengqi. The journal reference will be added
+once the manuscript is published.
+
+---
+
+## Repository layout
+
+```
+TheFlowPG-DL/
+├── Flow_scripts/
+│   ├── RBC_main.py                  main script
+│   ├── ML_CondLSTM.py               TPM training and inference
+│   ├── ML_CondLatent_TorchModel.py  TPM network (FFE + TWA + stacked LSTM)
+│   ├── ML_CondRBCrec.py             SRM training, inference and physics constraints
+│   └── ML_UNet_TorchModel.py        SRM backbone (encoder–decoder with skip connections)
+├── utils/
+│   └── ML_utils.py                  utilities
+├── checkpoints/
+│   ├── tpm/ckpt.pth                 pretrained TPM weights 
+│   └── srm/ckpt.pth                 pretrained SRM weights
+├── data/                            POD coefficients 
+└── results/                         outputs
+```
+
+---
+
+## Data
+
+`data/` holds five convection regimes, three used for training and two retained
+to test extrapolation in $Ra$ and $Pr$. Each regime has three files:
+
+| File | Content | Shape |
+| --- | --- | --- |
+| `_interpolate_128x128.npy` | DNS snapshots $(u, v, T)$ | `[1000, 3, 128, 128]` |
+| `_lsc_128x128.npy` | LSC field, the truncated POD reconstruction | `[1000, 3, 128, 128]` |
+| `_V_128x128.npy` | leading POD coefficients | `[3, 1000]` |
+
+| Case | $Ra$ | $Pr$ | Role | `-c` argument |
+| --- | --- | --- | --- | --- |
+| I.1 | $1\times10^{8}$ | 4.3 | training | `RBC_all_Ra10e8` |
+| I.2 | $1\times10^{8}$ | 2.0 | training | `RBC_all_Ra10e8Pr2` |
+| I.3 | $1\times10^{7}$ | 4.3 | training | `RBC_all_Ra10e7` |
+| E.1 | $5\times10^{7}$ | 4.3 | extrapolation | `RBC_all_Ra5p10e7` |
+| E.2 | $1\times10^{8}$ | 3.2 | extrapolation | `RBC_all_Ra10e8Pr3p2` |
+
+---
+
+## Usage
+
+Evaluating one case takes two runs. The TPM writes the predicted LSC field to
+`results/.../S_pred.npy`, and the SRM reads it back:
+
+```bash
+python RBC_main.py -m DLMD-CondLSTMrff-attn-Transfer -c RBC_all_Ra10e8
+python RBC_main.py -m CondUNetrec-gn-Nu-div-Transfer -c RBC_all_Ra10e8
+```
+
+### Command-line options
+
+| Argument | Default | Role |
+| --- | --- | --- |
+| `-m` | `DLMD-CondLSTMrff-attn-Transfer` | Module and run mode, selected by substring (below) |
+| `-c` | `RBC_all_Ra10e8` | Regime to evaluate; append `_v` or `_T` to report the $v$ or $T$ component |
+| `-r` | `1` | POD truncation rank |
+| `-d` | `0.01` | Weight of the divergence-free constraint |
+| `-n` | `0.01` | Weight of the heat-flux constraint |
+
+Substrings of `-m`:
+
+| Substring | Role |
+| --- | --- |
+| `POD` | run the POD decomposition |
+| `DLMD` | run the TPM |
+| `rec` | run the SRM |
+| `Transfer` | load the pretrained weights instead of training |
+| `UNet` | SRM backbone |
+| `div`, `Nu` | enable the divergence-free / heat-flux constraint in SRM |
+| `ablation` | deactivate the FFE and TWA submodules of the TPM |
+
+---
+
+## Other run modes
+
+The checkpoints retained with this repository reproduce the results of the
+TheFlowPG-DL pipeline reported in the paper. The sensitivity analyses can be
+run from the same entry point, using the commands below.
+
+```bash
+# regenerate the POD arrays in data/ (writes S_pred.npy and V_pred.npy)
+python RBC_main.py -m POD -c RBC_all_Ra10e8
+
+# train from scratch instead of loading the pretrained weights
+python RBC_main.py -m DLMD-CondLSTMrff-attn -c RBC_all_Ra10e8
+python RBC_main.py -m CondUNetrec-gn-Nu-div -c RBC_all_Ra10e8
+
+# ablation: the same LSTM with the FFE and TWA submodules deactivated
+python RBC_main.py -m DLMD-CondLSTM-ablation -c RBC_all_Ra10e8
+
+# sensitivity to the truncation rank and to the constraint weights
+python RBC_main.py -m DLMD-CondLSTMrff-attn -c RBC_all_Ra10e8 -r 5
+python RBC_main.py -m CondUNetrec-gn-Nu-div -c RBC_all_Ra10e8 -d 0.1 -n 0.001
+```
+
+The POD mode writes its two arrays and then stops with an error in the
+evaluation shared with the other modules, which needs the full velocity and
+thermal fields. Training runs use the three training regimes (I.1–I.3).
+
+---
+
+## Data availability
+
+`checkpoints/` and the small `data/*_V_*.npy` coefficient files are included in
+this repository. The two large arrays of every regime, `*_interpolate_*.npy`
+(DNS snapshots) and `*_lsc_*.npy` (LSC fields), total about 1.9 GB and are
+archived separately; download them and place them in `data/` before running.
+
+> Zenodo DOI: *to be added on release.*
+
+---
+
+## Notes
+The code was verified on Python
+3.9.7 with PyTorch 2.1.1+cu118 on an NVIDIA GPU.
+
+This code is released for educational and academic research purposes only, and
+is not intended for commercial use. It is written for clarity and for reproducing the results of the
+paper rather than for performance, it has not been optimized for large-scale
+computation.
