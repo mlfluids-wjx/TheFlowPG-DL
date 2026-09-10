@@ -20,8 +20,8 @@ consecutively:
 
 ## Citation
 
-This repository accompanies the paper *Decoding multistate turbulence:
-physics-guided learning of spatiotemporal dynamics in turbulent convection*
+This repository accompanies the paper **Decoding multistate turbulence:
+physics-guided learning of spatiotemporal dynamics in turbulent convection**
 by Wu Jiaxin, Xie Yichao and Zhang Mengqi. The journal reference will be added
 once the manuscript is published.
 
