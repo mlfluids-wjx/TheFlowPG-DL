@@ -50,7 +50,7 @@ TheFlowPG-DL/
 
 ## Data
 
-`data/` holds five flow cases, three used for training and two retained
+`data/` contains five flow cases, three used for training and two retained
 to test extrapolation with unseen $Ra$ and $Pr$. Each case has three files:
 
 | File | Content | Shape |
@@ -73,6 +73,7 @@ this repository. The two large arrays of every regime, `*_interpolate_*.npy`
 archived separately; download them via the link below and place them in `data/` before running.
 
 > Science DB DOI: https://doi.org/10.57760/sciencedb.012m1 (*Under review*)
+
 ---
 
 ## Usage
@@ -84,6 +85,7 @@ Evaluating one case takes two runs. The TPM writes the predicted LSC field to
 python RBC_main.py -m DLMD-CondLSTMrff-attn-Transfer -c RBC_all_Ra10e8
 python RBC_main.py -m CondUNetrec-gn-Nu-div-Transfer -c RBC_all_Ra10e8
 ```
+---
 
 ### Command-line options
 
