@@ -67,6 +67,12 @@ to test extrapolation with unseen $Ra$ and $Pr$. Each case has three files:
 | E.1 | $5\times10^{7}$ | 4.3 | extrapolation | `RBC_all_Ra5p10e7` |
 | E.2 | $1\times10^{8}$ | 3.2 | extrapolation | `RBC_all_Ra10e8Pr3p2` |
 
+`checkpoints/` and the small `data/*_V_*.npy` coefficient files are included in
+this repository. The two large arrays of every regime, `*_interpolate_*.npy`
+(DNS snapshots) and `*_lsc_*.npy` (LSC fields) are
+archived separately; download them and place them in `data/` before running.
+
+> Science DB DOI: [*Under review*](https://doi.org/10.57760/sciencedb.012m1)
 ---
 
 ## Usage
@@ -128,17 +134,6 @@ python RBC_main.py -m CondUNetrec-gn-Nu-div -c RBC_all_Ra10e8 -d 0.1 -n 0.001
 The POD mode writes its two arrays and then stops with an error in the
 evaluation shared with the other modules, which needs the full velocity and
 thermal fields. Training runs use the three training regimes (I.1–I.3).
-
----
-
-## Data availability
-
-`checkpoints/` and the small `data/*_V_*.npy` coefficient files are included in
-this repository. The two large arrays of every regime, `*_interpolate_*.npy`
-(DNS snapshots) and `*_lsc_*.npy` (LSC fields) are
-archived separately; download them and place them in `data/` before running.
-
-> Zenodo DOI: *to be added on release.*
 
 ---
 
