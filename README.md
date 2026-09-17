@@ -70,9 +70,9 @@ to test extrapolation with unseen $Ra$ and $Pr$. Each case has three files:
 `checkpoints/` and the small `data/*_V_*.npy` coefficient files are included in
 this repository. The two large arrays of every regime, `*_interpolate_*.npy`
 (DNS snapshots) and `*_lsc_*.npy` (LSC fields) are
-archived separately; download them and place them in `data/` before running.
+archived separately; download them via the link below and place them in `data/` before running.
 
-> Science DB DOI: [*Under review*](https://doi.org/10.57760/sciencedb.012m1)
+> Science DB DOI: https://doi.org/10.57760/sciencedb.012m1 (*Under review*)
 ---
 
 ## Usage
